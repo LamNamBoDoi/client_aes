@@ -1,0 +1,87 @@
+.root {
+    -fx-background-color: #1e1e2e;
+    -fx-padding: 20px;
+    -fx-font-family: "Arial";
+}
+
+/* Labels */
+.label {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* TextFields */
+.text-field {
+    -fx-background-color: #2e2e3e;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-border-color: #4a4a5a;
+    -fx-border-radius: 5px;
+    -fx-padding: 5px;
+}
+
+.text-field:focused {
+    -fx-border-color: #009688;
+}
+
+/* Buttons */
+.button {
+    -fx-background-color: #009688;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-border-radius: 5px;
+    -fx-padding: 8px 15px;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #00796b;
+}
+
+/* Specific Buttons */
+.myfile-button {
+    -fx-background-color: #5c6bc0;
+}
+
+.myfile-button:hover {
+    -fx-background-color: #3f51b5;
+}
+
+.sendfile-button {
+    -fx-background-color: #ff9800;
+}
+
+.sendfile-button:hover {
+    -fx-background-color: #e68900;
+}
+
+.decryptfile-button {
+    -fx-background-color: #8e24aa;
+}
+
+.decryptfile-button:hover {
+    -fx-background-color: #6a1b9a;
+}
+
+.logout-button {
+    -fx-background-color: #d32f2f;
+}
+
+.logout-button:hover {
+    -fx-background-color: #b71c1c;
+}
+
+/* Alert Dialog */
+.dialog-pane {
+    -fx-background-color: #2e2e3e;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: white;
+}
+
+.dialog-pane .button {
+    -fx-background-color: #009688;
+}

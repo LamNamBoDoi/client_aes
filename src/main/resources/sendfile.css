@@ -1,0 +1,43 @@
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #2c3e50;
+}
+
+.text-field, .password-field, .combo-box {
+    -fx-font-size: 14px;
+    -fx-pref-height: 35px;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1;
+}
+
+.combo-box .list-cell {
+    -fx-padding: 5 10 5 10;
+}
+
+.button {
+    -fx-font-size: 14px;
+    -fx-padding: 8 15;
+    -fx-background-radius: 5;
+    -fx-min-width: 120px;
+}
+
+.progress-indicator {
+    -fx-progress-color: #3498db;
+}
+
+.file-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #555;
+}
+
+.file-label-selected {
+    -fx-font-size: 14px;
+    -fx-text-fill: #27ae60;
+    -fx-font-weight: bold;
+}
