@@ -1,9 +1,8 @@
 package com.example.demo1;
 
 import java.awt.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
+import java.util.Arrays;
 import java.util.Objects;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -27,7 +26,7 @@ public class DecryptFileScene {
     private File selectedFile;
 
     private final TextField fileLabel = new TextField("No file selected");
-    private final PasswordField keyField = new PasswordField();
+    private final TextField keyField = new TextField();
     private final ComboBox<String> keySizeComboBox = new ComboBox<>();
 
     public DecryptFileScene(Stage stage, String username, Runnable onBack) {
@@ -39,8 +38,8 @@ public class DecryptFileScene {
         fileLabel.setMaxWidth(Double.MAX_VALUE);
         keyField.setPromptText("Enter decryption key");
         keyField.setMaxWidth(Double.MAX_VALUE);
-        keySizeComboBox.getItems().addAll("128 bits", "192 bits", "256 bits");
-        keySizeComboBox.setValue("128 bits");
+        keySizeComboBox.getItems().addAll("128-bit", "192-bit", "256-bit");
+        keySizeComboBox.setValue("128-bit");
         keySizeComboBox.setMaxWidth(Double.MAX_VALUE);
     }
 
@@ -183,48 +182,81 @@ public class DecryptFileScene {
             showErrorAlert("Chưa chọn kích thước khóa", "Vui lòng chọn kích thước khóa được sử dụng để mã hóa.");
             return;
         }
+        int keySize = Integer.parseInt(keySizeComboBox.getValue().replace("-bit", "").trim());
+
+        if ((keySize == 128 && key.length() != 16) ||
+                (keySize == 192 && key.length() != 24) ||
+                (keySize == 256 && key.length() != 32)) {
+            showErrorAlert("Error", "❌ Key length does not match AES-" + keySize + " requirements!");
+            return;
+        }
 
         File decryptDir = new File("users/" + username + "/Decrypted");
         if (!decryptDir.exists()) decryptDir.mkdirs();
 
-        // Loại bỏ phần mở rộng .enc hoặc .aes nếu có
-        String originalName = selectedFile.getName();
-        if (originalName.endsWith(".enc") || originalName.endsWith(".aes")) {
-            originalName = originalName.substring(0, originalName.lastIndexOf('.'));
-        }
 
-        File decryptedFile = new File(decryptDir, originalName);
-
+        File decryptedFile = new File(decryptDir,  selectedFile.getName());
         try {
-            // Đọc IV từ đầu file (16 byte)
-            byte[] iv = new byte[16];
-            FileInputStream fis = new FileInputStream(selectedFile);
-            if (fis.read(iv) != iv.length) {
-                showErrorAlert("Lỗi tệp", "Không thể đọc IV từ tệp.");
-                fis.close();
-                return;
-            }
-
-            // Đọc phần còn lại là dữ liệu mã hóa
-            byte[] encryptedData = fis.readAllBytes();
-            fis.close();
-
-            // Chuyển dữ liệu mã hóa sang chuỗi hex hoặc base64
-            String encryptedHex = bytesToHex(encryptedData);
-            String ivHex = bytesToHex(iv);
-
-            // Giải mã dữ liệu
             CBC cbc = new CBC();
-            String decryptedHex = cbc.decrypt(encryptedHex, ivHex, key);
+            byte[] output;
+            String previousHexString = "";
+            String result = "";
+            String hexString = "";
+            try (FileInputStream fis = new FileInputStream(selectedFile);
+                 BufferedInputStream bis = new BufferedInputStream(fis);
+                 FileOutputStream fos = new FileOutputStream(decryptedFile);
+                 BufferedOutputStream bos = new BufferedOutputStream(fos))
+            {
+                byte[] iv = new byte[16];
+                if (bis.read(iv) != iv.length) {
+                    showErrorAlert("Lỗi tệp", "Không thể đọc IV từ tệp.");
+                    fis.close();
+                    return;
+                }
+                String data = dataToHexString(bytesToHex(iv));
+                byte[] block = new byte[16];
+                byte[] previousBlock;
+                byte[] previousDecrypt;
+                int bytesRead;
+                bytesRead = bis.read(block);
+                if (bytesRead == -1) {
+                    // File không có đủ dữ liệu để đọc
+                    return;
+                }
+                previousBlock = block;
+                previousHexString = data;
+                hexString = bytesToHex(block);
+                result=cbc.decrypt(hexString, previousHexString, key);
+                previousDecrypt = hexToBytes(result);
+                previousHexString = bytesToHex(previousBlock);
+                // nguyên lý cbc
+                // block đầu: giải mã aes -> xor với IV -> ra plaintext
+                // block sau: Giải mã AES → XOR với ciphertext block trước → Ra plaintext
+                while (bis.read(block) != -1) {
+                    // Nếu không phải là khối đầu tiên, chuyển đổi khối trước đó thành chuỗi hexa và in ra
+                    // Convert block to hex string
+                    hexString = bytesToHex(block);
 
-            // Chuyển từ hex về byte
-            byte[] decryptedData = hexToBytes(decryptedHex);
-
-            // Ghi dữ liệu đã giải mã ra tệp mới
-            FileOutputStream fos = new FileOutputStream(decryptedFile);
-            fos.write(decryptedData);
-            fos.close();
-
+                    // Convert hex string back to byte array
+                    result=cbc.decrypt(hexString, previousHexString, key);
+                    output = hexToBytes(result);
+                    // Kiểm tra xem chuỗi có chứa PKCS7 padding không
+                    if(Arrays.equals(output, new byte[]{0x10, 0x10, 0x10, 0x10, 0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10})){
+                        previousDecrypt = removePadding(previousDecrypt);
+                        bos.write(previousDecrypt);
+                    }else{
+                        bos.write(previousDecrypt);
+                    }
+                    //System.arraycopy(source, srcPos, destination, destPos, length);
+                    System.arraycopy(block, 0, previousBlock, 0, block.length);
+                    previousHexString = bytesToHex(previousBlock);
+                    previousDecrypt = output;
+                }
+                bos.close();
+                fos.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
             showSuccessAlert("Giải mã thành công", "Tệp đã được giải mã và lưu tại:\n" + decryptedFile.getAbsolutePath());
 
             // Mở tệp sau khi giải mã thành công
@@ -236,26 +268,47 @@ public class DecryptFileScene {
         }
     }
 
-    // Hàm chuyển đổi byte[] sang hex string
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
+   protected String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder(bytes.length*2);
         for (byte b : bytes) {
-            sb.append(String.format("%02X", b));
+            hexString.append(String.format("%02X", b));
         }
-        return sb.toString();
+        return hexString.toString();
     }
 
-    // Hàm chuyển đổi hex string sang byte[]
-    private byte[] hexToBytes(String hex) {
-        int len = hex.length();
-        byte[] data = new byte[len / 2];
+    protected byte[] hexToBytes(String hexString){
+        int len = hexString.length();
+        byte[] output = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
-                    + Character.digit(hex.charAt(i+1), 16));
+            output[i / 2] = (byte) Integer.parseInt(hexString.substring(i, i + 2), 16);
         }
-        return data;
+        return output;
     }
 
+    protected String dataToHexString(String data) {
+        StringBuilder hexString = new StringBuilder();
+        for (char c : data.toCharArray()) {
+            hexString.append(String.format("%02X", (int) c));
+        }
+        return hexString.toString();
+    }
+    public byte[] removePadding(byte[] output) {
+        int paddingLength = output[output.length - 1];
+        if (paddingLength > 0 && paddingLength <= 16) {
+            // Loại bỏ byte padding
+            for (int i = 16 - paddingLength; i < 15; i++) {
+                if (output[i] != paddingLength) {
+                    return output;
+                }
+            }
+            byte[] result = new byte[output.length - paddingLength];
+            System.arraycopy(output, 0, result, 0, result.length);
+            return result;
+        } else {
+            // Nếu không có padding, trả về chuỗi ban đầu
+            return output;
+        }
+    }
 
     private void showErrorAlert(String title, String message) {
         Platform.runLater(() -> {

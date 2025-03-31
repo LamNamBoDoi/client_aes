@@ -144,12 +144,12 @@ public class ClientApp extends Application {
         fileIcon.setFitWidth(24.0);
         fileIcon.setFitHeight(24.0);
 
-        Button fileButton = new Button("My Files", fileIcon);
+        Button fileButton = new Button("My Files của "+currentUsername, fileIcon);
         fileButton.setMaxWidth(Double.MAX_VALUE);
         fileButton.getStyleClass().add("myfile-button");
         fileButton.setOnAction(event -> {
             if (currentUsername != null) {
-                File userDecryptDir = new File("./users/" + currentUsername + "/Decrypt");
+                File userDecryptDir = new File("./users/" + currentUsername + "/Decrypted");
                 if (!userDecryptDir.exists()) {
                     boolean mkdirs = userDecryptDir.mkdirs();
                 }
@@ -182,7 +182,7 @@ public class ClientApp extends Application {
             ).createScene());
         });
 
-        ImageView decryptIcon = new ImageView(new Image(getClass().getResourceAsStream("/decryption.png")));
+        ImageView decryptIcon = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/decryption.png"))));
         decryptIcon.setFitWidth(24.0);
         decryptIcon.setFitHeight(24.0);
 
