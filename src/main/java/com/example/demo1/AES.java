@@ -1,17 +1,19 @@
 package com.example.demo1;
 
+import java.util.Arrays;
+
 public abstract class AES {
     // Holds the expanded Key
     protected int[][] expandedKey;
     // Holds the initialization vector.
-  //  protected int[][] initializationVector = new int[4][4];
+    //  protected int[][] initializationVector = new int[4][4];
 
     public int[][] subBytes(int[][] arr) {
         for (int i = 0; i < arr.length; i++) {
             for (int j = 0; j < arr[i].length; j++) {
                 int hex = arr[i][j];
-                  // Lấy phần nguyên của hex chia 16
-                  // Lấy phần dư của hex chia 16
+                // Lấy phần nguyên của hex chia 16
+                // Lấy phần dư của hex chia 16
                 arr[i][j] = Constants.sbox[hex / 16][hex % 16];  // Thay thế giá trị ban đầu bằng giá trị từ bảng sbox
             }
         }
@@ -105,7 +107,7 @@ public abstract class AES {
     /**
      * Performed by mapping each element in the current matrix with the value
      * returned by its helper function.
-    // * @param //arr the array with we calculate against the galois field matrix.
+     // * @param //arr the array with we calculate against the galois field matrix.
      */
 
     public int[][] mixColumns(int[][] state) //method for mixColumns
@@ -201,12 +203,12 @@ public abstract class AES {
      * For every (binary key size / 32)th column in the expanded key. We compute a special column
      * using sbox and an XOR of the an rcon number with the first element in the passed array.
      *
-  //   * @param in the array in which we compute the next set of bytes for key expansion
-   //  * @param rconpointer the element in the rcon array with which to XOR the first element in 'in'
+     //   * @param in the array in which we compute the next set of bytes for key expansion
+     //  * @param rconpointer the element in the rcon array with which to XOR the first element in 'in'
      * @return the next column in the key scheduling.
      */
 
-   public int[] schedule_core(int[] in, int rconpointer) {
+    public int[] schedule_core(int[] in, int rconpointer) {
         in = leftRotate(in, 1);
         int hex;
         for (int i = 0; i < in.length; i++) {
@@ -314,7 +316,7 @@ public abstract class AES {
                     output.append(k);
                 }
                 // Append a space
-         //       output += ' ';
+                //       output += ' ';
             }
         }
 

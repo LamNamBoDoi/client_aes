@@ -1,6 +1,8 @@
 package com.example.demo1;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -25,7 +27,7 @@ public class SendFileScene {
     private final Runnable onBack;
     private File selectedFile;
     private final Label fileLabel;
-    private final PasswordField keyField;
+    private final TextField keyField;
     private final ComboBox<String> recipientComboBox;
     private final ComboBox<String> keySizeComboBox;
     private final ProgressIndicator progressIndicator;
@@ -41,7 +43,7 @@ public class SendFileScene {
         fileLabel = new Label("No file selected");
         fileLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #555;");
 
-        keyField = new PasswordField();
+        keyField = new TextField();
         keyField.setPromptText("Enter encryption key");
         keyField.setStyle("-fx-font-size: 14px; -fx-prompt-text-fill: #aaa;");
 
@@ -66,10 +68,16 @@ public class SendFileScene {
         titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #3a5169;"); // Định dạng tiêu đề
 
         // Tạo các nút bấm với icon tương ứng
-        Button backButton = createActionButton("Back", "/back.png", "#6c757d"); // Nút quay lại
-        Button sendButton = createActionButton("Send", "/send.png", "#28a745"); // Nút gửi file
-        Button chooseFileButton = createActionButton("Select File", "/file.png", "#17a2b8"); // Nút chọn file
-        Button refreshButton = createActionButton("Refresh", "/refresh.png", "#6f42c1"); // Nút làm mới danh sách người nhận
+        Button backButton = createActionButton("Back", "/back.png", "#6c757d",e -> onBack.run()); // Nút quay lại
+        Button sendButton = createActionButton("Send", "/send.png", "#28a745", e -> handleSendFile()); // Nút gửi file
+        Button chooseFileButton = createActionButton("Select File", "/file.png", "#17a2b8", e -> {
+            FileChooser fileChooser = new FileChooser();
+            selectedFile = fileChooser.showOpenDialog(stage);
+            if (selectedFile != null) {
+                fileLabel.setText(selectedFile.getName());
+            }
+        }); // Nút chọn file
+        Button refreshButton = createActionButton("Refresh", "/refresh.png", "#6f42c1",e -> requestClientList()); // Nút làm mới danh sách người nhận
 
         // Tạo lưới bố cục cho form nhập liệu
         GridPane formGrid = new GridPane();
@@ -108,7 +116,7 @@ public class SendFileScene {
         return scene; // Trả về scene đã tạo
     }
 
-    private Button createActionButton(String text, String iconPath, String color) {
+    private Button createActionButton(String text, String iconPath, String color, EventHandler<ActionEvent> action) {
         ImageView icon = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream(iconPath))));
         icon.setFitWidth(16);
         icon.setFitHeight(16);
@@ -124,23 +132,15 @@ public class SendFileScene {
         button.setOnMouseEntered(e -> button.setStyle("-fx-base: " + color + "; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0.5, 0, 1);"));
         button.setOnMouseExited(e -> button.setStyle("-fx-base: " + color + "; -fx-effect: null;"));
 
-        return button;
-    }
+        // Gán action khi nhấn
+        button.setOnAction(action);
 
-    private void selectFile() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select File to Send");
-        File file = fileChooser.showOpenDialog(stage);
-        if (file != null) {
-            selectedFile = file;
-            fileLabel.setText(file.getName());
-            fileLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #27ae60; -fx-font-weight: bold;");
-        }
+        return button;
     }
 
     public void requestClientList() {
         new Thread(() -> {
-            try (Socket socket = new Socket(serverIp, serverPort)) {
+            try (Socket socket = new Socket(serverIp, serverPort)) {//Tạo một Socket kết nối tới server:
                 DataOutputStream dataOutput = new DataOutputStream(socket.getOutputStream());
                 DataInputStream dataInput = new DataInputStream(socket.getInputStream());
 
@@ -150,9 +150,11 @@ public class SendFileScene {
 
                 // Nhận danh sách từ server
                 String response = dataInput.readUTF();
-                List<String> clients = Arrays.asList(response.split(","));
-                clients.removeIf(String::isBlank); // Loại bỏ các mục rỗng
-                clients.remove(username); // Loại bỏ chính mình
+                System.out.println("Received client list: " + response);
+                // Chuyển danh sách thành danh sách có thể chỉnh sửa
+                List<String> clients = new ArrayList<>(Arrays.asList(response.split(",")));
+
+                clients.remove(username);
 
                 Platform.runLater(() -> {
                     if (clients.isEmpty()) {
@@ -171,14 +173,16 @@ public class SendFileScene {
         }).start();
     }
 
-    private void sendFile() {
+    private void handleSendFile() {
         if (selectedFile == null) {
             showAlert("Warning", "Please select a file first!");
             return;
         }
 
         String key = keyField.getText().trim();
+        int keySize = Integer.parseInt(keySizeComboBox.getValue().replace("-bit", "").trim());
         String receiver = recipientComboBox.getValue();
+
         if (receiver == null || receiver.isEmpty()) {
             showAlert("Warning", "Please select a recipient!");
             return;
@@ -188,44 +192,139 @@ public class SendFileScene {
             return;
         }
 
-        progressIndicator.setVisible(true);
-        new Thread(() -> {
-            try (Socket socket = new Socket(serverIp, serverPort);
-                 DataOutputStream dataOutput = new DataOutputStream(socket.getOutputStream());
-                 FileInputStream fileInput = new FileInputStream(selectedFile)) {
-
-                dataOutput.writeUTF("START_FILE");
-                dataOutput.writeUTF(receiver);
-                dataOutput.writeUTF(selectedFile.getName());
-                dataOutput.writeLong(selectedFile.length());
-                dataOutput.flush();
-
-                byte[] buffer = new byte[65536];
-                int bytesRead;
-                while ((bytesRead = fileInput.read(buffer)) != -1) {
-                    dataOutput.write(buffer, 0, bytesRead);
-                }
-                dataOutput.flush();
-
-                Platform.runLater(() -> {
-                    progressIndicator.setVisible(false);
-                    showAlert("Success", "File sent successfully to " + receiver + "!");
-                    resetForm();
-                });
-            } catch (Exception e) {
-                Platform.runLater(() -> {
-                    progressIndicator.setVisible(false);
-                    showAlert("Error", "Failed to send file: " + e.getMessage());
-                });
-            }
-        }).start();
+        String iv = generateRandomIV(); // Tạo IV tự động
+        File encryptedFile = encryptFile(selectedFile, key, iv, keySize);
+        if (encryptedFile != null) {
+            sendFileToServer(encryptedFile, receiver);
+            showAlert("Warning","📂 File '" + selectedFile.getName() + "' sent successfully!");
+            onBack.run();
+        } else {
+            showAlert("Warning","Error encrypting file!");
+        }
     }
 
-    private void resetForm() {
-        selectedFile = null;
-        fileLabel.setText("No file selected");
-        fileLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #555;");
-        keyField.clear();
+    private String generateRandomIV() {
+        byte[] iv = new byte[16]; // IV phải có độ dài 16 byte cho AES
+        for (int i = 0; i < 16; i++) {
+            iv[i] = (byte) (Math.random() * 256); // Tạo giá trị ngẫu nhiên từ 0 đến 255
+        }
+        return bytesToHex(iv); // Chuyển IV thành chuỗi hex để sử dụng
+    }
+
+
+    private File encryptFile(File file, String key, String iv, int keySize) {
+        try {
+            if ((keySize == 128 && key.length() != 16) ||
+                    (keySize == 192 && key.length() != 24) ||
+                    (keySize == 256 && key.length() != 32)) {
+                showAlert("Error", "❌ Key length does not match AES-" + keySize + " requirements!");
+                return null;
+            }
+
+            CBC cbc = new CBC();
+            File encryptDir = new File("users/" + username + "/Encrypt");
+            if (!encryptDir.exists()) encryptDir.mkdirs();
+
+            File encryptedFile = new File(encryptDir, file.getName());
+            byte[] ivBytes = hexToBytes(iv);
+            byte[] output;
+            String data = iv; // IV sẽ là khối đầu tiên
+
+            try (FileInputStream fis = new FileInputStream(file);
+                 BufferedInputStream bis = new BufferedInputStream(fis);
+                 FileOutputStream fos = new FileOutputStream(encryptedFile);
+                 BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+
+                // ✅ Ghi IV vào 16 byte đầu tiên của file
+                bos.write(ivBytes);
+
+                byte[] block = new byte[16];
+                int bytesRead;
+                //Đọc từng khối 16 byte từ file gốc.
+                while ((bytesRead = bis.read(block)) != -1) {
+                    if (bytesRead < 16) {
+                        for (int i = bytesRead; i < 16; i++) {
+                            block[i] = (byte) (16 - bytesRead);
+                        }
+                    }
+                    String hexString = bytesToHex(block);
+                    data = cbc.encrypt(hexString, data, key);
+                    output = hexToBytes(data);
+                    bos.write(output);
+                }
+                bos.write(hexToBytes(cbc.encrypt("10101010101010101010101010101010", data, key)));
+                return encryptedFile;
+
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        } catch (Exception e) {
+            showAlert("Warning", "❌ Error during encryption: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    protected String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder(bytes.length*2);
+        for (byte b : bytes) {
+            //    String hex = Integer.toHexString(0xff & b);
+            //   if (hex.length() == 1) {
+            //          hexString.append('0');
+            //    }
+            hexString.append(String.format("%02X", b));
+        }
+        return hexString.toString();
+    }
+
+    protected byte[] hexToBytes(String hexString){
+        int len = hexString.length();
+        byte[] output = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            output[i / 2] = (byte) Integer.parseInt(hexString.substring(i, i + 2), 16);
+        }
+        return output;
+    }
+    protected String dataToHexString(String data) {
+        StringBuilder hexString = new StringBuilder();
+        for (char c : data.toCharArray()) {
+            hexString.append(String.format("%02X", (int) c));
+        }
+        return hexString.toString();
+    }
+
+    private void sendFileToServer(File file, String receiver) {
+        new Thread(() -> {
+            try (Socket socket = new Socket(serverIp, serverPort)) {
+                DataOutputStream dataOutput = new DataOutputStream(socket.getOutputStream());
+                DataInputStream dataInput = new DataInputStream(socket.getInputStream());
+
+                // Gửi tín hiệu bắt đầu + thông tin file
+                dataOutput.writeUTF("START_FILE");
+                dataOutput.writeUTF(receiver);
+                dataOutput.writeUTF(file.getName());
+                dataOutput.writeLong(file.length());
+                dataOutput.flush();
+
+                // Gửi nội dung file
+                try (FileInputStream fileInput = new FileInputStream(file)) {
+                    byte[] buffer = new byte[65536]; // 64KB buffer
+                    int bytesRead;
+                    while ((bytesRead = fileInput.read(buffer)) != -1) {
+                        dataOutput.write(buffer, 0, bytesRead);
+                    }
+                    dataOutput.flush();
+                }
+
+                // Nhận phản hồi từ server
+                String serverResponse = dataInput.readUTF();
+                System.out.println("✅ File '" + file.getName() + "' sent successfully!\nServer Response: " + serverResponse);
+                Platform.runLater(() -> showAlert("Warning","✅ File '" + file.getName() + "' sent successfully!\nServer Response: " + serverResponse));
+            } catch (IOException e) {
+                System.err.println("❌ Error sending file: " + e.getMessage());
+                Platform.runLater(() -> showAlert("Warning","❌ Error sending file: " + e.getMessage()));
+            }
+        }).start();
     }
 
     private void showAlert(String title, String message) {
