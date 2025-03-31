@@ -192,7 +192,7 @@ public class SendFileScene {
             return;
         }
 
-        String iv = generateRandomIV(); // Tạo IV tự động
+        byte[] iv = generateRandomIV(); // Tạo IV tự động
         File encryptedFile = encryptFile(selectedFile, key, iv, keySize);
         if (encryptedFile != null) {
             sendFileToServer(encryptedFile, receiver);
@@ -203,16 +203,16 @@ public class SendFileScene {
         }
     }
 
-    private String generateRandomIV() {
+    private byte[] generateRandomIV() {
         byte[] iv = new byte[16]; // IV phải có độ dài 16 byte cho AES
         for (int i = 0; i < 16; i++) {
             iv[i] = (byte) (Math.random() * 256); // Tạo giá trị ngẫu nhiên từ 0 đến 255
         }
-        return bytesToHex(iv); // Chuyển IV thành chuỗi hex để sử dụng
+        return iv; // Chuyển IV thành chuỗi hex để sử dụng
     }
 
 
-    private File encryptFile(File file, String key, String iv, int keySize) {
+    private File encryptFile(File file, String key, byte[] iv, int keySize) {
         try {
             if ((keySize == 128 && key.length() != 16) ||
                     (keySize == 192 && key.length() != 24) ||
@@ -226,17 +226,15 @@ public class SendFileScene {
             if (!encryptDir.exists()) encryptDir.mkdirs();
 
             File encryptedFile = new File(encryptDir, file.getName());
-            byte[] ivBytes = hexToBytes(iv);
             byte[] output;
-            String data = iv; // IV sẽ là khối đầu tiên
+            String data = dataToHexString(bytesToHex(iv)); // IV sẽ là khối đầu tiên
 
             try (FileInputStream fis = new FileInputStream(file);
                  BufferedInputStream bis = new BufferedInputStream(fis);
                  FileOutputStream fos = new FileOutputStream(encryptedFile);
                  BufferedOutputStream bos = new BufferedOutputStream(fos)) {
 
-                // ✅ Ghi IV vào 16 byte đầu tiên của file
-                bos.write(ivBytes);
+                bos.write(iv);
 
                 byte[] block = new byte[16];
                 int bytesRead;
@@ -268,10 +266,6 @@ public class SendFileScene {
     protected String bytesToHex(byte[] bytes) {
         StringBuilder hexString = new StringBuilder(bytes.length*2);
         for (byte b : bytes) {
-            //    String hex = Integer.toHexString(0xff & b);
-            //   if (hex.length() == 1) {
-            //          hexString.append('0');
-            //    }
             hexString.append(String.format("%02X", b));
         }
         return hexString.toString();
