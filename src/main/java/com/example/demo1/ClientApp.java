@@ -28,7 +28,7 @@ public class ClientApp extends Application {
     private Socket socket;
     private DataOutputStream dataOutput;
     private DataInputStream dataInput;
-    private TextArea logArea = new TextArea();
+    private final TextArea logArea = new TextArea();
     private String currentUsername;
 
     @Override
@@ -199,7 +199,7 @@ public class ClientApp extends Application {
             }
         });
 
-        ImageView logoutIcon = new ImageView(new Image(getClass().getResourceAsStream("/logout.png")));
+        ImageView logoutIcon = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/logout.png"))));
         logoutIcon.setFitWidth(24.0);
         logoutIcon.setFitHeight(24.0);
 
@@ -227,6 +227,7 @@ public class ClientApp extends Application {
     }
 
     private void connectToServer(String ip, int port, String username, Stage stage) {
+        // Tác vụ bất đồng
         Task<Boolean> task = new Task<Boolean>() {
             @Override
             protected Boolean call() throws Exception {
@@ -235,6 +236,7 @@ public class ClientApp extends Application {
                     dataOutput = new DataOutputStream(socket.getOutputStream());
                     dataInput = new DataInputStream(socket.getInputStream());
 
+                    // Gửi yêu cầu đăng nhập
                     dataOutput.writeUTF("LOGIN:" + username);
                     currentUsername = username;
 
@@ -245,6 +247,7 @@ public class ClientApp extends Application {
             }
         };
 
+        // được gọi khi tác vụ hoàn thành
         task.setOnSucceeded(event -> {
             if (task.getValue()) {
                 Platform.runLater(() -> {
@@ -271,13 +274,13 @@ public class ClientApp extends Application {
             try {
                 while (true) {
                     String serverMessage = dataInput.readUTF();
-                    if (serverMessage == null) break;
+                    if (serverMessage.isEmpty()) break;
 
                     Platform.runLater(() -> appendLog("📩 Server: " + serverMessage));
 
-                    if (serverMessage.equals("FILE")) {
+                    if ("FILE".equals(serverMessage)) {
                         String fileName = dataInput.readUTF().trim();
-                        if (fileName == null) break;
+                        if (fileName.isEmpty()) break;
 
                         long fileSize = dataInput.readLong();
 
