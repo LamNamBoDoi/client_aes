@@ -1,0 +1,802 @@
+LẬP TRÌNH C TRONG LINUX
+Lab 1.1. 
+1: Tạo mảng b chỉ chứa giá trị lẻ từ mảng a
+
+#include <stdio.h>
+
+int main() {
+    int a[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}; 
+    int n = sizeof(a) / sizeof(a[0]); // Số phần tử của mảng a
+    int b[n], m = 0; // Mảng b và số lượng phần tử thực tế của b
+
+    for (int i = 0; i < n; i++) {
+        if (a[i] % 2 != 0) { // Nếu số đó là số lẻ
+            b[m++] = a[i]; // Thêm vào mảng b
+        }
+    }
+
+    // In mảng b
+    printf("Mang b chi chua gia tri le: ");
+    for (int i = 0; i < m; i++) {
+        printf("%d ", b[i]);
+    }
+
+    return 0;
+}
+
+
+
+2: Tạo mảng b chỉ chứa giá trị âm từ mảng a
+
+#include <stdio.h>
+
+int main() {
+    int a[] = {3, -1, 7, -4, -8, 2, -6, 10, -9}; 
+    int n = sizeof(a) / sizeof(a[0]); // Số phần tử của mảng a
+    int b[n], m = 0; // Mảng b và số lượng phần tử thực tế của b
+
+    for (int i = 0; i < n; i++) {
+        if (a[i] < 0) { // Nếu số đó là số âm
+            b[m++] = a[i]; // Thêm vào mảng b
+        }
+    }
+
+    // In mảng b
+    printf("Mang b chi chua gia tri am: ");
+    for (int i = 0; i < m; i++) {
+        printf("%d ", b[i]);
+    }
+
+    return 0;
+}
+
+
+
+
+3: Tạo mảng b sao cho b[i] = tổng các phần tử lân cận với a[i] trong mảng a
+
+
+
+#include <stdio.h>
+
+int main() {
+    int a[] = {1, 2, 3, 4, 5}; 
+    int n = sizeof(a) / sizeof(a[0]); // Số phần tử của mảng a
+    int b[n]; // Mảng b có cùng kích thước với a
+
+    for (int i = 0; i < n; i++) {
+        // Nếu không có phần tử bên trái, chỉ cộng phần tử bên phải
+        if (i == 0) {
+            b[i] = a[i + 1];
+        }
+        // Nếu không có phần tử bên phải, chỉ cộng phần tử bên trái
+        else if (i == n - 1) {
+            b[i] = a[i - 1];
+        }
+        // Nếu có cả hai phần tử lân cận, cộng cả hai
+        else {
+            b[i] = a[i - 1] + a[i + 1];
+        }
+    }
+
+    // In mảng b
+    printf("Mang b: ");
+    for (int i = 0; i < n; i++) {
+        printf("%d ", b[i]);
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+4: Tạo mảng b chỉ chứa số nguyên tố từ mảng a
+
+
+#include <stdio.h>
+#include <stdbool.h>
+
+// Hàm kiểm tra số nguyên tố
+bool isPrime(int num) {
+    if (num < 2) return false;
+    for (int i = 2; i * i <= num; i++) {
+        if (num % i == 0) return false;
+    }
+    return true;
+}
+
+int main() {
+    int a[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}; 
+    int n = sizeof(a) / sizeof(a[0]); // Số phần tử của mảng a
+    int b[n]; // Mảng b có thể có tối đa n phần tử
+    int count = 0; // Biến đếm số lượng số nguyên tố
+
+    // Lọc số nguyên tố từ mảng a vào mảng b
+    for (int i = 0; i < n; i++) {
+        if (isPrime(a[i])) {
+            b[count++] = a[i]; // Thêm số nguyên tố vào mảng b
+        }
+    }
+
+    // In mảng b
+    printf("Mang b (chi chua so nguyen to): ");
+    for (int i = 0; i < count; i++) {
+        printf("%d ", b[i]);
+    }
+
+    return 0;
+}
+
+
+
+5: Viết hàm tìm giá trị lớn nhất trong ma trận số thực
+
+#include <stdio.h>
+
+// Hàm tìm giá trị lớn nhất trong ma trận số thực
+double findMax(int rows, int cols, double matrix[rows][cols]) {
+    double maxVal = matrix[0][0];
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (matrix[i][j] > maxVal) {
+                maxVal = matrix[i][j];
+            }
+        }
+    }
+    return maxVal;
+}
+
+int main() {
+    int rows = 3, cols = 3;
+    double matrix[3][3] = {
+        {1.2, 3.5, -2.8},
+        {7.4, 5.1, 4.6},
+        {0.9, -3.2, 8.7}
+    };
+
+   double maxVal = findMax(rows, cols, matrix);
+    printf("Gia tri lon nhat trong ma tran: %.2f\n", maxVal);
+
+    return 0;
+}
+
+
+
+6: Viết hàm kiểm tra trong ma trận số nguyên có tồn tại giá trị chẵn nhỏ hơn 2015?
+
+#include <stdio.h>
+#include <stdbool.h>
+
+// Hàm kiểm tra có tồn tại số chẵn nhỏ hơn 2015 trong ma trận không
+bool hasEvenLessThan2015(int rows, int cols, int matrix[rows][cols]) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (matrix[i][j] % 2 == 0 && matrix[i][j] < 2015) {
+                return true; // Nếu tìm thấy, trả về true ngay lập tức
+            }
+        }
+    }
+    return false; // Không tìm thấy số chẵn nhỏ hơn 2015
+}
+
+int main() {
+    int rows = 3, cols = 3;
+    int matrix[3][3] = {
+        {2016, 2018, 2020},
+        {2017, 2019, 2021},
+        {2000, 3000, 4000} // Có số 2000 < 2015 và là số chẵn
+    };
+
+    if (hasEvenLessThan2015(rows, cols, matrix)) {
+        printf("Co ton tai so chan nho hon 2015 trong ma tran.\n");
+    } else {
+        printf("Khong ton tai so chan nho hon 2015 trong ma tran.\n");
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+7: Viết hàm đếm số lượng số nguyên tố trong ma trận số nguyên
+
+
+#include <stdio.h>
+#include <stdbool.h>
+
+// Hàm kiểm tra số nguyên tố
+bool isPrime(int n) {
+    if (n < 2) return false;
+    for (int i = 2; i * i <= n; i++) {
+        if (n % i == 0) return false;
+    }
+    return true;
+}
+
+// Hàm đếm số lượng số nguyên tố trong ma trận
+int countPrimes(int rows, int cols, int matrix[rows][cols]) {
+    int count = 0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (isPrime(matrix[i][j])) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+int main() {
+    int rows = 3, cols = 3;
+    int matrix[3][3] = {
+        {2, 3, 4},
+        {5, 6, 7},
+        {8, 9, 11}
+    };
+
+    int primeCount = countPrimes(rows, cols, matrix);
+    printf("So luong so nguyen to trong ma tran: %d\n", primeCount);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+8: Viết hàm tính tổng các giá trị âm trong ma trận số thực
+
+
+
+#include <stdio.h>
+
+// Hàm tính tổng các giá trị âm trong ma trận số thực
+double sumNegativeValues(int rows, int cols, double matrix[rows][cols]) {
+    double sum = 0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (matrix[i][j] < 0) {
+                sum += matrix[i][j];
+            }
+        }
+    }
+    return sum;
+}
+
+int main() {
+    int rows = 3, cols = 3;
+    double matrix[3][3] = {
+        {-1.2, 3.5, -2.8},
+        {7.4, -5.1, 4.6},
+        {-0.9, -3.2, 8.7}
+    };
+
+    double totalSum = sumNegativeValues(rows, cols, matrix);
+    printf("Tong cac gia tri am trong ma tran: %.2f\n", totalSum);
+
+    return 0;
+}
+
+
+
+
+
+9: Viết hàm sắp xếp ma trận các số thực tăng dần từ trên xuống dưới và từ trái sang phải
+
+
+
+
+
+
+
+
+
+
+Bổ sung:
+10. Tính độ dài chuỗi
+
+
+#include <stdio.h>
+
+// Hàm tính độ dài chuỗi mà không dùng strlen()
+int stringLength(const char str[]) {
+    int length = 0;
+    while (str[length] != '\0') {
+        length++;
+    }
+    return length;
+}
+
+int main() {
+    char str[] = "Hello, world!";
+    int length = stringLength(str);
+    printf("Do dai chuoi: %d\n", length);
+    return 0;
+}
+
+
+
+11. Đảo các kí tự của chuỗi
+
+
+
+#include <stdio.h>
+
+// Hàm đảo ngược chuỗi
+void reverseString(char str[]) {
+    int left = 0, right = 0;
+    
+    // Tìm độ dài chuỗi
+    while (str[right] != '\0') {
+        right++;
+    }
+    right--; // Trừ 1 để bỏ qua ký tự kết thúc '\0'
+
+    // Đảo chuỗi bằng cách hoán đổi ký tự
+    while (left < right) {
+        char temp = str[left];
+        str[left] = str[right];
+        str[right] = temp;
+        left++;
+        right--;
+    }
+}
+
+int main() {
+    char str[] = "Hello, world!";
+    reverseString(str);
+    printf("Chuoi sau khi dao nguoc: %s\n", str);
+    return 0;
+}
+
+
+
+
+12. Đếm số từ trong 1 chuỗi
+
+
+
+#include <stdio.h>
+#include <ctype.h> // Dùng cho isspace()
+
+// Hàm đếm số từ trong chuỗi
+int countWords(const char str[]) {
+    int count = 0, inWord = 0; 
+
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (!isspace(str[i])) { // Nếu là ký tự không phải khoảng trắng
+            if (!inWord) { // Nếu trước đó chưa phải từ
+                count++;
+                inWord = 1; // Đánh dấu đang trong một từ
+            }
+        } else {
+            inWord = 0; // Gặp khoảng trắng, kết thúc từ hiện tại
+        }
+    }
+    return count;
+}
+
+int main() {
+    char str[] = "  Hello,   world!  This is C  language.  ";
+    printf("So tu trong chuoi: %d\n", countWords(str));
+    return 0;
+}
+
+
+
+
+
+
+
+13. Remove space trong chuỗi
+
+
+
+
+#include <stdio.h>
+
+// Hàm xóa toàn bộ khoảng trắng trong chuỗi
+void removeSpaces(char *str) {
+    int i = 0, j = 0;
+    
+    while (str[i] != '\0') {
+        if (str[i] != ' ') { // Nếu không phải dấu cách, giữ lại
+            str[j++] = str[i];
+        }
+        i++;
+    }
+    str[j] = '\0'; // Kết thúc chuỗi
+}
+
+int main() {
+    char str[] = "  Hello   World !   C language ";
+    removeSpaces(str);
+    printf("Chuoi sau khi xoa khoang trang: \"%s\"\n", str);
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+14. Tìm vị trí kí tự xuất hiện đầu tiên trong chuỗi
+
+
+
+#include <stdio.h>
+
+// Hàm tìm vị trí xuất hiện đầu tiên của ký tự trong chuỗi
+int findFirstOccurrence(const char *str, char ch) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (str[i] == ch) {
+            return i; // Trả về vị trí đầu tiên tìm thấy
+        }
+    }
+    return -1; // Nếu không tìm thấy ký tự
+}
+
+int main() {
+    char str[] = "Hello World!";
+    char ch = 'o';
+
+    int position = findFirstOccurrence(str, ch);
+    
+    if (position != -1) {
+        printf("Ky tu '%c' xuat hien dau tien o vi tri: %d\n", ch, position);
+    } else {
+        printf("Ky tu '%c' khong ton tai trong chuoi.\n", ch);
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+15. Tìm vị trí xuất hiện của kí tự c trong chuỗi s
+
+
+
+
+#include <stdio.h>
+
+// Hàm tìm tất cả vị trí xuất hiện của ký tự trong chuỗi
+void findAllOccurrences(const char *str, char ch) {
+    int found = 0; // Biến kiểm tra có tìm thấy ký tự hay không
+    printf("Ky tu '%c' xuat hien o vi tri: ", ch);
+    
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (str[i] == ch) {
+            printf("%d ", i); // In vị trí tìm thấy
+            found = 1;
+        }
+    }
+
+    if (!found) {
+        printf("Khong tim thay ky tu trong chuoi.");
+    }
+
+    printf("\n");
+}
+
+int main() {
+    char str[] = "characteristic";
+    char ch = 'c';
+
+    findAllOccurrences(str, ch);
+
+    return 0;
+}
+
+
+
+
+
+
+16. Tìm chuỗi con trong 1 chuỗi
+
+
+
+#include <stdio.h>
+
+// Hàm tìm chuỗi con trong chuỗi gốc
+int findSubstring(const char *str, const char *sub) {
+    int i, j;
+    for (i = 0; str[i] != '\0'; i++) {
+        for (j = 0; sub[j] != '\0'; j++) {
+            if (str[i + j] != sub[j]) {
+                break; // Nếu không khớp, dừng kiểm tra
+            }
+        }
+        if (sub[j] == '\0') {
+            return i; // Nếu tìm thấy chuỗi con, trả về vị trí
+        }
+    }
+    return -1; // Không tìm thấy
+}
+
+int main() {
+    char str[] = "Hello, welcome to C programming!";
+    char sub[] = "welcome";
+
+    int position = findSubstring(str, sub);
+    
+    if (position != -1) {
+        printf("Chuoi con '%s' xuat hien o vi tri: %d\n", sub, position);
+    } else {
+        printf("Khong tim thay chuoi con '%s' trong chuoi.\n", sub);
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+17. Kiểm tra tính đối xứng của chuỗi
+
+#include <stdio.h>
+#include <string.h>
+
+// Hàm kiểm tra chuỗi đối xứng
+int isPalindrome(const char *str) {
+    int left = 0;
+    int right = strlen(str) - 1;
+
+    while (left < right) {
+        if (str[left] != str[right]) {
+            return 0; // Không đối xứng
+        }
+        left++;
+        right--;
+    }
+    return 1; // Đối xứng
+}
+
+int main() {
+    char str[100];
+
+    printf("Nhap chuoi: ");
+    scanf("%s", str); // Nhập chuỗi không chứa khoảng trắng
+
+    if (isPalindrome(str)) {
+        printf("Chuoi la doi xung.\n");
+    } else {
+        printf("Chuoi khong doi xung.\n");
+    }
+
+    return 0;
+}
+
+
+
+
+
+18. Thay thế kí tự trong chuỗi
+
+
+
+
+#include <stdio.h>
+#include <string.h>
+
+// Hàm thay thế ký tự trong chuỗi
+void replaceChar(char *str, char oldChar, char newChar) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (str[i] == oldChar) {
+            str[i] = newChar;
+        }
+    }
+}
+
+int main() {
+    char str[100];
+    char oldChar, newChar;
+
+    // Nhập chuỗi
+    printf("Nhap chuoi: ");
+    gets(str); // Dùng gets để nhập cả khoảng trắng (có thể thay bằng fgets)
+
+    // Nhập ký tự cần thay thế và ký tự mới
+    printf("Nhap ky tu can thay the: ");
+    scanf("%c", &oldChar);
+    getchar(); // Loại bỏ ký tự xuống dòng trong bộ đệm
+
+    printf("Nhap ky tu moi: ");
+    scanf("%c", &newChar);
+
+    // Gọi hàm thay thế
+    replaceChar(str, oldChar, newChar);
+
+    // In chuỗi sau khi thay thế
+    printf("Chuoi sau khi thay the: %s\n", str);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+19. Đổi kí tự đầu tiên của mỗi từ thành chữ in hoa
+
+
+
+
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
+// Hàm viết hoa chữ cái đầu của mỗi từ
+void capitalizeWords(char *str) {
+    int capitalize = 1; // Biến kiểm tra xem có cần viết hoa không
+
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (isspace(str[i])) {
+            capitalize = 1; // Khi gặp khoảng trắng, đánh dấu cần viết hoa ký tự sau
+        } else if (capitalize && isalpha(str[i])) {
+            str[i] = toupper(str[i]); // Viết hoa ký tự đầu tiên
+            capitalize = 0; // Đánh dấu đã viết hoa
+        }
+    }
+}
+
+int main() {
+    char str[100];
+
+    // Nhập chuỗi có khoảng trắng
+    printf("Nhap chuoi: ");
+    fgets(str, sizeof(str), stdin);
+    str[strcspn(str, "\n")] = '\0'; // Xóa ký tự xuống dòng
+
+    // Viết hoa chữ cái đầu mỗi từ
+    capitalizeWords(str);
+
+    // In kết quả
+    printf("Chuoi sau khi bien doi: %s\n", str);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+20. Đếm số lần xuất hiện của kí tự c trong chuỗi s
+
+
+
+#include <stdio.h>
+#include <string.h>
+
+// Hàm đếm số lần xuất hiện của ký tự trong chuỗi
+int countCharOccurrences(char *str, char c) {
+    int count = 0;
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (str[i] == c) {
+            count++;
+        }
+    }
+    return count;
+}
+
+int main() {
+    char str[100], c;
+
+    // Nhập chuỗi
+    printf("Nhap chuoi: ");
+    fgets(str, sizeof(str), stdin);
+    str[strcspn(str, "\n")] = '\0'; // Xóa ký tự xuống dòng nếu có
+
+    // Nhập ký tự cần đếm
+    printf("Nhap ky tu can dem: ");
+    scanf("%c", &c);
+
+    // Gọi hàm và in kết quả
+    int result = countCharOccurrences(str, c);
+    printf("Ky tu '%c' xuat hien %d lan trong chuoi.\n", c, result);
+
+    return 0;
+}
+
+
+
+
+
+21. Thay thế kí tự bất kì trong chuỗi bằng kí tự mới
+
+
+
+
+#include <stdio.h>
+#include <string.h>
+
+// Hàm thay thế ký tự trong chuỗi
+void replaceChar(char *str, char oldChar, char newChar) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (str[i] == oldChar) {
+            str[i] = newChar; // Thay thế ký tự
+        }
+    }
+}
+
+int main() {
+    char str[100], oldChar, newChar;
+
+    // Nhập chuỗi
+    printf("Nhap chuoi: ");
+    fgets(str, sizeof(str), stdin);
+    str[strcspn(str, "\n")] = '\0'; // Xóa ký tự xuống dòng nếu có
+
+    // Nhập ký tự cần thay thế
+    printf("Nhap ky tu can thay the: ");
+    scanf("%c", &oldChar);
+    getchar(); // Loại bỏ ký tự '\n' còn lại trong bộ đệm
+
+    // Nhập ký tự mới
+    printf("Nhap ky tu moi: ");
+    scanf("%c", &newChar);
+
+    // Thực hiện thay thế
+    replaceChar(str, oldChar, newChar);
+
+    // In kết quả
+    printf("Chuoi sau khi thay the: %s\n", str);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+22. Quản lý sinh viên bằng struct

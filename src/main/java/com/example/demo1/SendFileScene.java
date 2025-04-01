@@ -213,9 +213,15 @@ public class SendFileScene {
             showAlert("Warning", "Please enter the encryption key!");
             return;
         }
+        if ((keySize == 128 && key.length() != 16) ||
+                (keySize == 192 && key.length() != 24) ||
+                (keySize == 256 && key.length() != 32)) {
+            showAlert("Error", "❌ Key length does not match AES-" + keySize + " requirements!");
+            return;
+        }
 
         byte[] iv = generateRandomIV(); // Tạo IV tự động
-        File encryptedFile = encryptFile(selectedFile, key, iv, keySize);
+        File encryptedFile = encryptFile(selectedFile, key, iv);
         if (encryptedFile != null) {
             sendFileToServer(encryptedFile, receiver);
             showAlert("Warning","📂 File '" + selectedFile.getName() + "' sent successfully!");
@@ -234,30 +240,25 @@ public class SendFileScene {
     }
 
 
-    private File encryptFile(File file, String key, byte[] iv, int keySize) {
+    private File encryptFile(File file, String key, byte[] iv) {
         try {
-            if ((keySize == 128 && key.length() != 16) ||
-                    (keySize == 192 && key.length() != 24) ||
-                    (keySize == 256 && key.length() != 32)) {
-                showAlert("Error", "❌ Key length does not match AES-" + keySize + " requirements!");
-                return null;
-            }
-
             CBC cbc = new CBC();
+            // Khởi tạo thư mục lưu tập tin đã mã hóa
             File encryptDir = new File("users/" + username + "/Encrypt");
             if (!encryptDir.exists()) encryptDir.mkdirs();
 
+            // tạo file mưu trữ mã hóa
             File encryptedFile = new File(encryptDir, file.getName());
             byte[] output;
-            String data = dataToHexString(bytesToHex(iv)); // IV sẽ là khối đầu tiên
+            String data = dataToHexString(bytesToHex(iv));
 
+            // buffer giảm số lần truy cập I/O
             try (FileInputStream fis = new FileInputStream(file);
                  BufferedInputStream bis = new BufferedInputStream(fis);
                  FileOutputStream fos = new FileOutputStream(encryptedFile);
                  BufferedOutputStream bos = new BufferedOutputStream(fos)) {
 
                 bos.write(iv);
-
                 byte[] block = new byte[16];
                 int bytesRead;
                 //Đọc từng khối 16 byte từ file gốc.
@@ -272,6 +273,7 @@ public class SendFileScene {
                     output = hexToBytes(data);
                     bos.write(output);
                 }
+                // GHI KHỐI MAC ĐỂ KIỂM TRA TÍNH TOÀN VẸN
                 bos.write(hexToBytes(cbc.encrypt("10101010101010101010101010101010", data, key)));
                 return encryptedFile;
 

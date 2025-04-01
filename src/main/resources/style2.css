@@ -69,25 +69,6 @@
 
 /* Nút Send File */
 .sendfile-button {
-    -fx-background-color: #28a745; /* Màu xanh lá */
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-    -fx-padding: 10px 20px;
-    -fx-background-radius: 5px;
-    -fx-border-radius: 5px;
-    -fx-font-weight: bold;
-}
-
-.sendfile-button:hover {
-    -fx-background-color: #218838;
-}
-
-.sendfile-button:pressed {
-    -fx-background-color: #1e7e34;
-}
-
-/* Nút Decrypt File */
-.decryptfile-button {
     -fx-background-color: #ffc107; /* Màu vàng */
     -fx-text-fill: white;
     -fx-font-size: 14px;
@@ -97,12 +78,31 @@
     -fx-font-weight: bold;
 }
 
-.decryptfile-button:hover {
+.sendfile-button:hover {
     -fx-background-color: #e0a800;
 }
 
-.decryptfile-button:pressed {
+.sendfile-button:pressed {
     -fx-background-color: #c69500;
+}
+
+/* Nút Decrypt File */
+.decryptfile-button {
+    -fx-background-color: #28a745; /* Màu xanh lá */
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-font-weight: bold;
+}
+
+.decryptfile-button:hover {
+    -fx-background-color: #218838;
+}
+
+.decryptfile-button:pressed {
+    -fx-background-color: #1e7e34;
 }
 
 /* Nút Logout */
