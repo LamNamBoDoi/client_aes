@@ -1,10 +1,7 @@
 package com.example.demo1;
 
 public abstract class AES {
-    // Holds the expanded Key
     protected int[][] expandedKey;
-    // Holds the initialization vector.
-    //  protected int[][] initializationVector = new int[4][4];
 
     public int[][] subBytes(int[][] arr) {
         for (int i = 0; i < arr.length; i++) {
@@ -30,7 +27,6 @@ public abstract class AES {
         return arr;
     }
 
-
     public int[] leftRotate(int[] arr, int shiftAmount)
     {
         if (shiftAmount % 4 == 0) {
@@ -54,10 +50,6 @@ public abstract class AES {
         }
         return arr;
     }
-
-
-
-
 
     public int[] rightRotate(int[] arr, int shiftAmount)
     {
@@ -102,12 +94,6 @@ public abstract class AES {
         return state;
     }
 
-    /**
-     * Performed by mapping each element in the current matrix with the value
-     * returned by its helper function.
-     // * @param //arr the array with we calculate against the galois field matrix.
-     */
-
     public int[][] mixColumns(int[][] state) //method for mixColumns
     {
         int[][] tempstate = new int[4][4];
@@ -122,15 +108,6 @@ public abstract class AES {
         }
         return state;
     }
-
-    /**
-     * Helper method of mixColumns in which compute the mixColumn formula on each element.
-     * @param arr passed in current matrix
-    // * @param g the galois field
-     * @param i the row position
-     * @param j the column position
-     * @return the computed mixColumns value
-     */
 
     private int mcHelper(int[][] arr, int[][] galois, int i, int j)
     {
@@ -194,17 +171,6 @@ public abstract class AES {
         }
         return 0;
     }
-
-
-
-    /**
-     * For every (binary key size / 32)th column in the expanded key. We compute a special column
-     * using sbox and an XOR of the an rcon number with the first element in the passed array.
-     *
-     //   * @param in the array in which we compute the next set of bytes for key expansion
-     //  * @param rconpointer the element in the rcon array with which to XOR the first element in 'in'
-     * @return the next column in the key scheduling.
-     */
 
     public int[] schedule_core(int[] in, int rconpointer) {
         in = leftRotate(in, 1);
@@ -274,16 +240,6 @@ public abstract class AES {
         return expandedKey;
     }
 
-    /**
-     * Helper function used in key expansion
-     *
-     * For each 4th word in the expanded key
-     * This function rotates the word
-     * Subs with Sbox
-     * And XORS each byte with an rcon constant
-     */
-
-
    /* public void printState(int[][] state) {
         for (int i = 0; i < state.length; i++) {
 
@@ -294,14 +250,6 @@ public abstract class AES {
         }
     }*/
 
-
-
-
-
-
-    /**
-     * Converts integer array state to a string
-     */
     protected String toString(int[][] state) {
         StringBuilder output = new StringBuilder();
 
@@ -317,22 +265,11 @@ public abstract class AES {
                 //       output += ' ';
             }
         }
-
         return output.toString();
     }
 
-
-
-    /**
-     * Abstract class for encryption
-     * To be implemented on an Encryption mode basis
-     */
     public abstract String encrypt(String input, String iv, String key);
 
-    /**
-     * Abstract class for decryption
-     * To be implemented on a Decryption mode basis
-     */
     public abstract String decrypt(String input, String iv, String key);
 
 

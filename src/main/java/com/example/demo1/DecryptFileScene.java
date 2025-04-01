@@ -101,7 +101,6 @@ public class DecryptFileScene {
 
         /* CÁC NÚT CHỨC NĂNG */
         Button decryptButton = createStyledButton("DECRYPTION", "/unlocked.png", "#4CAF50");
-        decryptButton.setStyle(decryptButton.getStyle() + "-fx-font-weight: bold;");
         decryptButton.setOnAction(e -> decryptFile());
 
         Button backButton = createStyledButton("BACK", "/back.png", "#616161");
