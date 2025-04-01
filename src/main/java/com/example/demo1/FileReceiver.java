@@ -3,23 +3,23 @@ package com.example.demo1;
 import java.io.*;
 import java.net.Socket;
 
+// Nhận các tệp tin và lưu vào hệ thống
 public class FileReceiver {
-    private final Socket socket;
     private final String username;
     private final DataInputStream dataInput;
 
     public FileReceiver(Socket socket, String username) throws IOException {
-        this.socket = socket;
         this.username = username;
         this.dataInput = new DataInputStream(socket.getInputStream());
     }
 
     public void receiveFile(String fileName, long fileSize) {
+        // tạo thư mục lưu trữ tệp
         File receivedDir = new File("./users/" + username + "/Received");
         if (!receivedDir.exists()) {
             receivedDir.mkdirs();
         }
-
+        // tạo file
         File file = new File(receivedDir, fileName);
 
         try (FileOutputStream fos = new FileOutputStream(file)) {
@@ -31,7 +31,7 @@ public class FileReceiver {
                 if (bytesRead == -1) {
                     throw new IOException("Connection lost while receiving file!");
                 }
-
+                // 0 offset của buffer
                 fos.write(buffer, 0, bytesRead);
                 totalRead += bytesRead;
 

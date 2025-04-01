@@ -173,6 +173,7 @@ public class ClientApp extends Application {
 
         Button fileButton = new Button("My Files", fileIcon);
         fileButton.setMaxWidth(Double.MAX_VALUE);
+        fileButton.setPrefWidth(150); // Set preferred width
         fileButton.getStyleClass().add("myfile-button");
         fileButton.setOnAction(event -> {
             if (currentUsername != null) {
@@ -196,6 +197,7 @@ public class ClientApp extends Application {
 
         Button sendButton = new Button("Send File", sendIcon);
         sendButton.setMaxWidth(Double.MAX_VALUE);
+        sendButton.setPrefWidth(150); // Set preferred width
         sendButton.getStyleClass().add("sendfile-button");
         sendButton.setOnAction(event -> {
             stage.setScene(new SendFileScene(
@@ -211,8 +213,9 @@ public class ClientApp extends Application {
         decryptIcon.setFitWidth(24.0);
         decryptIcon.setFitHeight(24.0);
 
-        Button decryptButton = new Button("Decrypt File", decryptIcon);
+        Button decryptButton = new Button("Decrypt", decryptIcon);
         decryptButton.setMaxWidth(Double.MAX_VALUE);
+        decryptButton.setPrefWidth(150); // Set preferred width
         decryptButton.getStyleClass().add("decryptfile-button");
         decryptButton.setOnAction(event -> {
             if (currentUsername != null) {
@@ -230,14 +233,22 @@ public class ClientApp extends Application {
 
         Button logoutButton = new Button("Logout", logoutIcon);
         logoutButton.setMaxWidth(Double.MAX_VALUE);
+        logoutButton.setPrefWidth(150); // Set preferred width
         logoutButton.getStyleClass().add("logout-button");
         logoutButton.setOnAction(event -> {
             disconnectFromServer();
             stage.setScene(createLoginScene(stage));
         });
 
+        // Create rows with 2 buttons each
+        HBox firstRow = new HBox(15, sendButton, decryptButton);
+        firstRow.setAlignment(Pos.CENTER);
+
+        HBox secondRow = new HBox(15, fileButton, logoutButton);
+        secondRow.setAlignment(Pos.CENTER);
+
         // Button container
-        VBox buttonBox = new VBox(15, sendButton, decryptButton,fileButton, logoutButton);
+        VBox buttonBox = new VBox(15, firstRow, secondRow);
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setPadding(new Insets(25));
         buttonBox.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
@@ -246,8 +257,8 @@ public class ClientApp extends Application {
         // Add all components to main layout
         mainLayout.getChildren().addAll(header, buttonBox);
 
-        Scene scene = new Scene(mainLayout, 470, 400);
-        scene.getStylesheets().add(getClass().getResource("/style2.css").toExternalForm());
+        Scene scene = new Scene(mainLayout, 400, 280);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/style2.css")).toExternalForm());
 
         return scene;
     }
@@ -259,6 +270,8 @@ public class ClientApp extends Application {
             protected Boolean call() throws Exception {
                 try {
                     socket = new Socket(ip, port);
+
+                    // nhận gửi dữ liệu
                     dataOutput = new DataOutputStream(socket.getOutputStream());
                     dataInput = new DataInputStream(socket.getInputStream());
 
@@ -266,7 +279,8 @@ public class ClientApp extends Application {
                     dataOutput.writeUTF("LOGIN:" + username);
                     currentUsername = username;
 
-                    return true;
+                    String serverResponse = dataInput.readUTF();
+                    return serverResponse.startsWith("OK:");
                 } catch (IOException e) {
                     return false;
                 }
@@ -277,6 +291,7 @@ public class ClientApp extends Application {
         task.setOnSucceeded(event -> {
             if (task.getValue()) {
                 Platform.runLater(() -> {
+                    // ghi log
                     appendLog("Connected as " + username);
                     stage.setScene(createMainScene(stage));
                 });
@@ -285,13 +300,12 @@ public class ClientApp extends Application {
                 showAlert("Cannot connect to the server!");
             }
         });
-
         new Thread(task).start();
     }
 
     private void listenToServer() {
         new Thread(() -> {
-            FileReceiver fileReceiver = null;
+            FileReceiver fileReceiver;
             try {
                 fileReceiver = new FileReceiver(socket, currentUsername);
             } catch (IOException e) {

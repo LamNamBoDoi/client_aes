@@ -1,7 +1,5 @@
 package com.example.demo1;
 
-import java.util.Arrays;
-
 public abstract class AES {
     // Holds the expanded Key
     protected int[][] expandedKey;

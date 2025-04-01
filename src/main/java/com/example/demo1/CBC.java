@@ -8,6 +8,7 @@ import com.example.demo1.AES;
 public class CBC extends AES {
     @Override
     public String encrypt(String input, String iv, String key) {
+        // ma trận lưu dữ liệu cần mã hóa
         int[][] state = new int[4][4];
         // ma trận lưu IV
         int[][] previous = new int[4][4];

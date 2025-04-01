@@ -188,11 +188,13 @@ public class DecryptFileScene {
     }
 
     private void openFileChooser() {
+        // người dùng chọn file từ hệ thống
         FileChooser fileChooser = new FileChooser();
         File receivedDir = new File("users/" + username + "/Received");
         if (!receivedDir.exists()) receivedDir.mkdirs();
         fileChooser.setInitialDirectory(receivedDir);
 
+        //
         File selectedFile = fileChooser.showOpenDialog(stage);
         if (selectedFile != null) {
             fileLabel.setText(selectedFile.getName());
