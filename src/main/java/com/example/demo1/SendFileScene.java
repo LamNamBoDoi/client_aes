@@ -5,6 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -26,11 +27,10 @@ public class SendFileScene {
     private final int serverPort;
     private final Runnable onBack;
     private File selectedFile;
-    private final Label fileLabel;
+    private final TextField fileLabel = new TextField("No file selected");
     private final TextField keyField;
     private final ComboBox<String> recipientComboBox;
     private final ComboBox<String> keySizeComboBox;
-    private final ProgressIndicator progressIndicator;
 
     public SendFileScene(Stage stage, String username, String serverIp, int serverPort, Runnable onBack) {
         this.stage = stage;
@@ -39,29 +39,34 @@ public class SendFileScene {
         this.serverPort = serverPort;
         this.onBack = onBack;
 
-        // Initialize UI components with improved styling
-        fileLabel = new Label("No file selected");
-        fileLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #555");
+        fileLabel.setEditable(false);
+        fileLabel.setMaxWidth(Double.MAX_VALUE);
 
         keyField = new TextField();
         keyField.setPromptText("Enter encryption key");
-        keyField.setStyle("-fx-font-size: 14px; -fx-prompt-text-fill: #aaa;");
+        keyField.setMaxWidth(Double.MAX_VALUE);
 
         recipientComboBox = new ComboBox<>();
         recipientComboBox.setPromptText("Select recipient");
-        recipientComboBox.setStyle("-fx-font-size: 12px; -fx-pref-width: 150;");
+        recipientComboBox.setMaxWidth(Double.MAX_VALUE);
 
         keySizeComboBox = new ComboBox<>();
         keySizeComboBox.getItems().addAll("128-bit", "192-bit", "256-bit");
         keySizeComboBox.setValue("128-bit");
-        keySizeComboBox.setStyle("-fx-font-size: 12px; -fx-pref-width: 150;");
+        keySizeComboBox.setMaxWidth(Double.MAX_VALUE);
 
-        progressIndicator = new ProgressIndicator();
+        ProgressIndicator progressIndicator = new ProgressIndicator();
         progressIndicator.setVisible(false);
     }
 
     public Scene createScene() {
         requestClientList(); // Request list of currently connected clients
+
+        // Tạo layout chính với background màu nhạt
+        VBox mainLayout = new VBox(15);
+        mainLayout.setAlignment(Pos.TOP_CENTER);
+        mainLayout.setPadding(new Insets(20));
+        mainLayout.setStyle("-fx-background-color: #f5f7fa;");
 
         /* TITLE SECTION */
         Label titleLabel = new Label("SEND ENCRYPTED FILE");
@@ -74,91 +79,163 @@ public class SendFileScene {
         formCard.setStyle("-fx-background-color: white; -fx-background-radius: 8; " +
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);");
 
-        // Configure GridPane for the form
+        // Thiết lập GridPane cho form
         GridPane formGrid = new GridPane();
         formGrid.setVgap(15);
         formGrid.setHgap(10);
         formGrid.setPadding(new Insets(10));
 
-        // Create buttons with icons
-        Button backButton = createActionButton("Back", "/back.png", "#6c757d", e -> onBack.run());
-        Button sendButton = createActionButton("Send", "/send.png", "#28a745", e -> handleSendFile());
-        Button chooseFileButton = createActionButton("Select File", "/file.png", "#17a2b8", e -> {
-            FileChooser fileChooser = new FileChooser();
-            selectedFile = fileChooser.showOpenDialog(stage);
-            if (selectedFile != null) {
-                fileLabel.setText(selectedFile.getName());
-            }
-        });
-        Button refreshButton = createActionButton("Refresh", "/refresh.png", "#6f42c1", e -> requestClientList());
+        // Cấu hình cột
+        ColumnConstraints labelCol = new ColumnConstraints();
+        labelCol.setMinWidth(120);
+        labelCol.setPrefWidth(120);
+        labelCol.setHgrow(Priority.NEVER);
 
-        // Style form elements
-        String commonFieldStyle = "-fx-padding: 8; -fx-font-weight: normal; -fx-background-color: #f8f9fa; " +
-                "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4;";
+        ColumnConstraints fieldCol = new ColumnConstraints();
+        fieldCol.setHgrow(Priority.ALWAYS);
 
-        fileLabel.setStyle(commonFieldStyle);
-        keyField.setStyle(commonFieldStyle);
+        formGrid.getColumnConstraints().addAll(labelCol, fieldCol);
 
-        String comboBoxStyle = "-fx-padding: 5; -fx-background-color: #f8f9fa; " +
-                "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4;";
+        /* CÁC TRƯỜNG NHẬP LIỆU */
+        // 1. Trường chọn file
+        fileLabel.setStyle("-fx-padding: 8; -fx-background-color: #f8f9fa; " +
+                "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4;");
 
-        keySizeComboBox.setStyle(comboBoxStyle);
-        recipientComboBox.setStyle(comboBoxStyle);
+        // 2. Trường nhập key
+        keyField.setStyle("-fx-padding: 8; -fx-background-color: #f8f9fa; " +
+                "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4;");
 
-        // Add elements to form
-        formGrid.add(new Label("Select File:"), 0, 0);
+        // 3. Combo box chọn key size
+        keySizeComboBox.setStyle("-fx-padding: 5; -fx-background-color: #f8f9fa; " +
+                "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4;");
 
-        formGrid.add(fileLabel, 1, 0);
-        formGrid.add(chooseFileButton, 2, 0);
+        // 4. Combo box chọn key size
+        recipientComboBox.setStyle("-fx-padding: 5; -fx-background-color: #f8f9fa; " +
+                "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4;");
 
-        formGrid.add(new Label("Key:"), 0, 1);
-        formGrid.add(keyField, 1, 1, 2, 1);
 
-        formGrid.add(new Label("Key Size:"), 0, 2);
-        formGrid.add(keySizeComboBox, 1, 2);
+        /* CÁC NÚT CHỨC NĂNG */
+        Button chooseFileButton = createStyledButton("SELECT FILE", "/file.png", "#2196F3");
+        chooseFileButton.setOnAction(e -> openFileChooser());
 
-        formGrid.add(new Label("Recipient:"), 0, 3);
-        formGrid.add(recipientComboBox, 1, 3);
-        formGrid.add(refreshButton, 2, 3);
+        Button sendButton = createStyledButton("SEND", "/send.png", "#28a745");
+        sendButton.setOnAction(e -> handleSendFile());
 
-        // Button container
-        HBox buttonBox = new HBox(12, backButton, sendButton);
+        Button backButton = createStyledButton("BACK", "/back.png", "#616161");
+        backButton.setOnAction(e -> onBack.run());
+
+        Button refreshButton = createStyledButton("Refresh", "/refresh.png", "#6f42c1");
+        refreshButton.setOnAction(e -> requestClientList());
+
+        // Thêm các thành phần vào form
+        addFormRow(formGrid, 0, "SELECT FILE:", fileLabel, chooseFileButton);
+        addFormRow(formGrid, 1, "KEY ENCRYPTION:", keyField, null);
+        addFormRow(formGrid, 2, "KEY SIZE:", keySizeComboBox,null);
+        addFormRow(formGrid, 3, "RECIPIENT: ", recipientComboBox, refreshButton);
+
+        // Container cho các nút
+        HBox buttonBox = new HBox(15, backButton, sendButton);
         buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.setPadding(new Insets(10, 0, 0, 0));
 
-        // Main layout
-        VBox mainLayout = new VBox(15, titleLabel, formGrid, progressIndicator, buttonBox);
-        mainLayout.setAlignment(Pos.CENTER);
-        mainLayout.setPadding(new Insets(20));
-        mainLayout.setStyle("-fx-background-color: #f5f7fa;");
+        // Thêm các thành phần vào form card
+        formCard.getChildren().addAll(formGrid, new Separator(), buttonBox);
 
-        // Create scene and apply stylesheet
-        Scene scene = new Scene(mainLayout, 430, 350);
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/sendfile.css")).toExternalForm());
+        // Thêm tất cả vào layout chính
+        mainLayout.getChildren().addAll(titleLabel, formCard);
 
-        return scene;
+        // Thiết lập kích thước ưu tiên
+        mainLayout.setPrefSize(500, 350);
+
+        return new Scene(mainLayout);
     }
+    private void openFileChooser() {
+        // người dùng chọn file từ hệ thống
+        FileChooser fileChooser = new FileChooser();
+        selectedFile = fileChooser.showOpenDialog(stage);
+        if (selectedFile != null) {
+            fileLabel.setText(selectedFile.getName());
+        }
+    }
+    // Phương thức hỗ trợ tạo nút có style
+    private Button createStyledButton(String text, String iconPath, String color) {
+        Button button = new Button(text, loadImage(iconPath, 16, 16));
+        button.setStyle("-fx-background-color: " + color + "; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-size: 14px; " +
+                "-fx-padding: 8 15; " +
+                "-fx-background-radius: 4;");
 
-    private Button createActionButton(String text, String iconPath, String color, EventHandler<ActionEvent> action) {
-        ImageView icon = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream(iconPath))));
-        icon.setFitWidth(16);
-        icon.setFitHeight(16);
+        // Hiệu ứng khi di chuột vào
+        button.setOnMouseEntered(e -> button.setStyle(
+                "-fx-background-color: derive(" + color + ", -15%); " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-padding: 8 15; " +
+                        "-fx-background-radius: 4;"));
 
-        Button button = new Button(text, icon);
-        button.setContentDisplay(ContentDisplay.LEFT);
-        button.setGraphicTextGap(10);
-        button.setStyle("-fx-font-size: 14px; -fx-padding: 8 15 8 15; -fx-background-radius: 5;");
-        button.setStyle("-fx-base: " + color + ";");
-        button.setMinWidth(120);
-
-        // Hiệu ứng hover
-        button.setOnMouseEntered(e -> button.setStyle("-fx-base: " + color + "; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0.5, 0, 1);"));
-        button.setOnMouseExited(e -> button.setStyle("-fx-base: " + color + "; -fx-effect: null;"));
-
-        // Gán action khi nhấn
-        button.setOnAction(action);
+        // Hiệu ứng khi di chuột ra
+        button.setOnMouseExited(e -> button.setStyle(
+                "-fx-background-color: " + color + "; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-padding: 8 15; " +
+                        "-fx-background-radius: 4;"));
 
         return button;
     }
+    private ImageView loadImage(String path, double width, double height) {
+        try {
+            Image image = new Image(Objects.requireNonNull(getClass().getResourceAsStream(path)));
+            ImageView imageView = new ImageView(image);
+            imageView.setFitWidth(width);
+            imageView.setFitHeight(height);
+            return imageView;
+        } catch (Exception e) {
+            return new ImageView();
+        }
+    }
+
+    private void addFormRow(GridPane grid, int row, String labelText, Control control, Node extraNode) {
+        Label label = new Label(labelText);
+        label.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
+        GridPane.setHalignment(label, javafx.geometry.HPos.LEFT);
+
+        grid.add(label, 0, row);
+
+        if (extraNode != null) {
+            HBox container = new HBox(10, control, extraNode);
+            container.setAlignment(Pos.CENTER_LEFT);
+            grid.add(container, 1, row);
+            GridPane.setHgrow(container, Priority.ALWAYS);
+        } else {
+            grid.add(control, 1, row);
+        }
+
+        GridPane.setHgrow(control, Priority.ALWAYS);
+    }
+
+//    private Button createActionButton(String text, String iconPath, String color, EventHandler<ActionEvent> action) {
+//        ImageView icon = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream(iconPath))));
+//        icon.setFitWidth(16);
+//        icon.setFitHeight(16);
+//
+//        Button button = new Button(text, icon);
+//        button.setContentDisplay(ContentDisplay.LEFT);
+//        button.setGraphicTextGap(10);
+//        button.setStyle("-fx-font-size: 14px; -fx-padding: 8 15 8 15; -fx-background-radius: 5;");
+//        button.setStyle("-fx-base: " + color + ";");
+//        button.setMinWidth(120);
+//
+//        // Hiệu ứng hover
+//        button.setOnMouseEntered(e -> button.setStyle("-fx-base: " + color + "; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0.5, 0, 1);"));
+//        button.setOnMouseExited(e -> button.setStyle("-fx-base: " + color + "; -fx-effect: null;"));
+//
+//        // Gán action khi nhấn
+//        button.setOnAction(action);
+//
+//        return button;
+//    }
 
     public void requestClientList() {
         new Thread(() -> {

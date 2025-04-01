@@ -14,12 +14,13 @@ public class CBC extends AES {
         int[][] previous = new int[4][4];
         String output = "";
 
+        // chuyển chuỗi thành hex
         key = previousToHexString(key);
         int loop=(key.length()*4)/32+6;
-        // Parse string into 4 x 4 state
+        // chuyển input và iv từ hex thành ma trận
         for (int j = 0; j < 4; j++) {
             for (int k = 0; k < 4; k++) {
-                // chuỗi input từ hex string sang ma trận state
+                // chuỗi input từ hex string sang ma trận state(cắt 2 ký tự -> chuyển hex sang số nguyên)
                 state[k][j] = Integer.parseInt(input.substring((8 * j) + (2 * k), (8 * j) + (2 * k + 2)), 16);
                 // // Chuyển IV từ hex string sang ma trận previous
                 previous[k][j] = Integer.parseInt(iv.substring((8 * j) + (2 * k), (8 * j) + (2 * k + 2)), 16);
@@ -113,6 +114,7 @@ public class CBC extends AES {
         return tmp;
     }
 
+    // chuyển đổi chuỗi ký tự thành hex
     private String previousToHexString(String previousString) {
         StringBuilder hexString = new StringBuilder();
         for (char c : previousString.toCharArray()) {
