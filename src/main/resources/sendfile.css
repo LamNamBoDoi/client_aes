@@ -5,9 +5,10 @@
 .label {
     -fx-font-size: 14px;
     -fx-text-fill: #2c3e50;
+    -fx-font-weight: bold;
 }
 
-.text-field, .password-field, .combo-box {
+.text-field, .combo-box {
     -fx-font-size: 14px;
     -fx-pref-height: 35px;
     -fx-background-radius: 5;

@@ -44,67 +44,112 @@ public class DecryptFileScene {
     }
 
     public Scene createScene() {
-        // Title
-        Label titleLabel = new Label("FILE DECRYPTION");
+        // Tạo layout chính với background màu nhạt
+        VBox mainLayout = new VBox(15);
+        mainLayout.setAlignment(Pos.TOP_CENTER);
+        mainLayout.setPadding(new Insets(20));
+        mainLayout.setStyle("-fx-background-color: #f5f7fa;");
+
+        /* PHẦN TIÊU ĐỀ */
+        Label titleLabel = new Label("DECRYPTION FILE");
         titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #3a5169;");
+        titleLabel.setPadding(new Insets(0, 0, 10, 0)); // Thêm padding dưới
 
-        // Form Card
-        VBox formCard = new VBox(10);
-        formCard.setMaxWidth(500);
-        formCard.setMaxHeight(300);
-        formCard.setPadding(new Insets(10));
+        /* PHẦN FORM NHẬP LIỆU */
+        VBox formCard = new VBox(15);
+        formCard.setMaxWidth(450);
+        formCard.setPadding(new Insets(20));
+        formCard.setStyle("-fx-background-color: white; -fx-background-radius: 8; " +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);");
 
-        // Styling for form elements
-        fileLabel.setStyle("-fx-padding: 8;");
-        keyField.setStyle("-fx-padding: 8;");
-        keySizeComboBox.setStyle("-fx-padding: 8;");
+        // Thiết lập GridPane cho form
+        GridPane formGrid = new GridPane();
+        formGrid.setVgap(15); // Khoảng cách dọc giữa các hàng
+        formGrid.setHgap(10); // Khoảng cách ngang giữa các cột
+        formGrid.setPadding(new Insets(10));
 
-        // Buttons
-        Button chooseFileButton = createStyledButton("SELECT", "/file.png", "#2196F3");
+        // Cấu hình cột
+        ColumnConstraints labelCol = new ColumnConstraints();
+        labelCol.setMinWidth(120);
+        labelCol.setPrefWidth(120);
+        labelCol.setHgrow(Priority.NEVER);
+
+        ColumnConstraints fieldCol = new ColumnConstraints();
+        fieldCol.setHgrow(Priority.ALWAYS);
+
+        formGrid.getColumnConstraints().addAll(labelCol, fieldCol);
+
+        /* CÁC TRƯỜNG NHẬP LIỆU */
+        // 1. Trường chọn file
+        fileLabel.setStyle("-fx-padding: 8; -fx-background-color: #f8f9fa; " +
+                "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4;");
+        Button chooseFileButton = createStyledButton("SELECT FILE", "/file.png", "#2196F3");
         chooseFileButton.setOnAction(e -> openFileChooser());
 
-        Button decryptButton = createStyledButton("DECRYPT FILE", "/unlocked.png", "#4CAF50");
+        // 2. Trường nhập key
+        keyField.setStyle("-fx-padding: 8; -fx-background-color: #f8f9fa; " +
+                "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4;");
+
+        // 3. Combo box chọn key size
+        keySizeComboBox.setStyle("-fx-padding: 5; -fx-background-color: #f8f9fa; " +
+                "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4;");
+
+        // Thêm các thành phần vào form
+        addFormRow(formGrid, 0, "FILE ENCRYPTION:", fileLabel, chooseFileButton);
+        addFormRow(formGrid, 1, "KEY DECRYPTION:", keyField);
+        addFormRow(formGrid, 2, "KEY SIZE:", keySizeComboBox);
+
+        /* CÁC NÚT CHỨC NĂNG */
+        Button decryptButton = createStyledButton("DECRYPTION", "/unlocked.png", "#4CAF50");
         decryptButton.setStyle(decryptButton.getStyle() + "-fx-font-weight: bold;");
         decryptButton.setOnAction(e -> decryptFile());
 
         Button backButton = createStyledButton("BACK", "/back.png", "#616161");
         backButton.setOnAction(e -> onBack.run());
 
-        // Tạo bố cục lưới cho biểu mẫu
-        GridPane formGrid = new GridPane();
-        formGrid.setVgap(10); // Khoảng cách giữa các hàng
-        formGrid.setHgap(10); // Khoảng cách giữa các cột
-        formGrid.setPadding(new Insets(10));
-        // Cấu hình cột để tránh chữ bị cắt
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setMinWidth(100); // Độ rộng tối thiểu của cột chứa nhãn
-        col1.setPrefWidth(120); // Độ rộng ưu tiên để tránh cắt chữ
-        col1.setHgrow(Priority.NEVER); // Không cho cột này mở rộng
+        // Container cho các nút
+        HBox buttonBox = new HBox(15, backButton, decryptButton);
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.setPadding(new Insets(10, 0, 0, 0));
 
-        ColumnConstraints col2 = new ColumnConstraints();
-        col2.setHgrow(Priority.ALWAYS); // Cho phép cột mở rộng để chứa nội dung
-
-        formGrid.getColumnConstraints().addAll(col1, col2);
-
-        // Add form elements with styled labels
-        addFormRow(formGrid, 0, "ENCRYPTED FILE:", fileLabel, chooseFileButton);
-        addFormRow(formGrid, 1, "DECRYPTION KEY:", keyField);
-        addFormRow(formGrid, 2, "KEY SIZE:", keySizeComboBox);
-
-        // Button container
-        HBox buttonBox = new HBox(10, backButton, decryptButton);
-        buttonBox.setAlignment(Pos.CENTER_RIGHT);
-
+        // Thêm các thành phần vào form card
         formCard.getChildren().addAll(formGrid, new Separator(), buttonBox);
 
-        // Main layout
-        VBox mainLayout = new VBox(10, titleLabel , formCard);
-        mainLayout.setAlignment(Pos.TOP_CENTER);
-        mainLayout.setPadding(new Insets(10));
+        // Thêm tất cả vào layout chính
+        mainLayout.getChildren().addAll(titleLabel, formCard);
 
-        mainLayout.setPrefSize(450, 320);
+        // Thiết lập kích thước ưu tiên
+        mainLayout.setPrefSize(500, 350);
 
         return new Scene(mainLayout);
+    }
+
+    // Phương thức hỗ trợ tạo nút có style
+    private Button createStyledButton(String text, String iconPath, String color) {
+        Button button = new Button(text, loadImage(iconPath, 16, 16));
+        button.setStyle("-fx-background-color: " + color + "; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-size: 14px; " +
+                "-fx-padding: 8 15; " +
+                "-fx-background-radius: 4;");
+
+        // Hiệu ứng khi di chuột vào
+        button.setOnMouseEntered(e -> button.setStyle(
+                "-fx-background-color: derive(" + color + ", -15%); " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-padding: 8 15; " +
+                        "-fx-background-radius: 4;"));
+
+        // Hiệu ứng khi di chuột ra
+        button.setOnMouseExited(e -> button.setStyle(
+                "-fx-background-color: " + color + "; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-padding: 8 15; " +
+                        "-fx-background-radius: 4;"));
+
+        return button;
     }
 
     private void addFormRow(GridPane grid, int row, String labelText, Control control) {
@@ -128,17 +173,6 @@ public class DecryptFileScene {
         }
 
         GridPane.setHgrow(control, Priority.ALWAYS);
-    }
-
-    private Button createStyledButton(String text, String iconPath, String color) {
-        Button button = new Button(text, loadImage(iconPath, 16, 16));
-        button.setStyle("-fx-background-color: " + color + "; " +
-                "-fx-text-fill: white; " +
-                "-fx-border-radius: 4; " +
-                "-fx-font-weight: bold; "+
-                "-fx-padding: 8 15 8 15; " +
-                "-fx-cursor: hand;");
-        return button;
     }
 
     private ImageView loadImage(String path, double width, double height) {
@@ -268,7 +302,7 @@ public class DecryptFileScene {
         }
     }
 
-   protected String bytesToHex(byte[] bytes) {
+    protected String bytesToHex(byte[] bytes) {
         StringBuilder hexString = new StringBuilder(bytes.length*2);
         for (byte b : bytes) {
             hexString.append(String.format("%02X", b));

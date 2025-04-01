@@ -41,7 +41,7 @@ public class SendFileScene {
 
         // Initialize UI components with improved styling
         fileLabel = new Label("No file selected");
-        fileLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #555;");
+        fileLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #555");
 
         keyField = new TextField();
         keyField.setPromptText("Enter encryption key");
@@ -61,59 +61,81 @@ public class SendFileScene {
     }
 
     public Scene createScene() {
-        requestClientList(); // Yêu cầu danh sách các client hiện đang kết nối
+        requestClientList(); // Request list of currently connected clients
 
-        // Tạo tiêu đề cho giao diện gửi file
-        Label titleLabel = new Label("SEND ENCRYPTED FILE"); // Nhãn tiêu đề
-        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #3a5169;"); // Định dạng tiêu đề
+        /* TITLE SECTION */
+        Label titleLabel = new Label("SEND ENCRYPTED FILE");
+        titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #3a5169;");
 
-        // Tạo các nút bấm với icon tương ứng
-        Button backButton = createActionButton("Back", "/back.png", "#6c757d",e -> onBack.run()); // Nút quay lại
-        Button sendButton = createActionButton("Send", "/send.png", "#28a745", e -> handleSendFile()); // Nút gửi file
+        /* FORM SECTION */
+        VBox formCard = new VBox(15);
+        formCard.setMaxWidth(450);
+        formCard.setPadding(new Insets(20));
+        formCard.setStyle("-fx-background-color: white; -fx-background-radius: 8; " +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);");
+
+        // Configure GridPane for the form
+        GridPane formGrid = new GridPane();
+        formGrid.setVgap(15);
+        formGrid.setHgap(10);
+        formGrid.setPadding(new Insets(10));
+
+        // Create buttons with icons
+        Button backButton = createActionButton("Back", "/back.png", "#6c757d", e -> onBack.run());
+        Button sendButton = createActionButton("Send", "/send.png", "#28a745", e -> handleSendFile());
         Button chooseFileButton = createActionButton("Select File", "/file.png", "#17a2b8", e -> {
             FileChooser fileChooser = new FileChooser();
             selectedFile = fileChooser.showOpenDialog(stage);
             if (selectedFile != null) {
                 fileLabel.setText(selectedFile.getName());
             }
-        }); // Nút chọn file
-        Button refreshButton = createActionButton("Refresh", "/refresh.png", "#6f42c1",e -> requestClientList()); // Nút làm mới danh sách người nhận
+        });
+        Button refreshButton = createActionButton("Refresh", "/refresh.png", "#6f42c1", e -> requestClientList());
 
-        // Tạo lưới bố cục cho form nhập liệu
-        GridPane formGrid = new GridPane();
-        formGrid.setHgap(10); // Khoảng cách ngang giữa các phần tử
-        formGrid.setVgap(10); // Khoảng cách dọc giữa các phần tử
-        formGrid.setPadding(new Insets(15)); // Khoảng cách lề xung quanh
+        // Style form elements
+        String commonFieldStyle = "-fx-padding: 8; -fx-font-weight: normal; -fx-background-color: #f8f9fa; " +
+                "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4;";
 
-        // Thêm các phần tử vào form
-        formGrid.add(new Label("File:"), 0, 0); // Nhãn "File"
-        formGrid.add(fileLabel, 1, 0); // Hiển thị tên file đã chọn
-        formGrid.add(chooseFileButton, 2, 0); // Nút chọn file
+        fileLabel.setStyle(commonFieldStyle);
+        keyField.setStyle(commonFieldStyle);
 
-        formGrid.add(new Label("Key:"), 0, 1); // Nhãn "Key"
-        formGrid.add(keyField, 1, 1, 2, 1); // Trường nhập khóa mã hóa
+        String comboBoxStyle = "-fx-padding: 5; -fx-background-color: #f8f9fa; " +
+                "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4;";
 
-        formGrid.add(new Label("Key Size:"), 0, 2); // Nhãn "Key Size"
-        formGrid.add(keySizeComboBox, 1, 2); // Chọn kích thước khóa mã hóa
+        keySizeComboBox.setStyle(comboBoxStyle);
+        recipientComboBox.setStyle(comboBoxStyle);
 
-        formGrid.add(new Label("Recipient:"), 0, 3); // Nhãn "Recipient"
-        formGrid.add(recipientComboBox, 1, 3); // Chọn người nhận file
-        formGrid.add(refreshButton, 2, 3); // Nút làm mới danh sách người nhận
+        // Add elements to form
+        formGrid.add(new Label("Select File:"), 0, 0);
 
-        // Hộp chứa các nút bấm (Back & Send)
-        HBox buttonBox = new HBox(12, backButton, sendButton); // Đặt nút Back trước Send
-        buttonBox.setAlignment(Pos.CENTER); // Căn giữa các nút
+        formGrid.add(fileLabel, 1, 0);
+        formGrid.add(chooseFileButton, 2, 0);
 
-        // Bố cục chính của giao diện
-        VBox mainLayout = new VBox(16, titleLabel, formGrid, progressIndicator, buttonBox);
-        mainLayout.setAlignment(Pos.CENTER); // Căn giữa nội dung
-        mainLayout.setPadding(new Insets(20)); // Khoảng cách lề
+        formGrid.add(new Label("Key:"), 0, 1);
+        formGrid.add(keyField, 1, 1, 2, 1);
 
-        // Tạo scene và áp dụng stylesheet
-        Scene scene = new Scene(mainLayout, 450, 320);
+        formGrid.add(new Label("Key Size:"), 0, 2);
+        formGrid.add(keySizeComboBox, 1, 2);
+
+        formGrid.add(new Label("Recipient:"), 0, 3);
+        formGrid.add(recipientComboBox, 1, 3);
+        formGrid.add(refreshButton, 2, 3);
+
+        // Button container
+        HBox buttonBox = new HBox(12, backButton, sendButton);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        // Main layout
+        VBox mainLayout = new VBox(15, titleLabel, formGrid, progressIndicator, buttonBox);
+        mainLayout.setAlignment(Pos.CENTER);
+        mainLayout.setPadding(new Insets(20));
+        mainLayout.setStyle("-fx-background-color: #f5f7fa;");
+
+        // Create scene and apply stylesheet
+        Scene scene = new Scene(mainLayout, 430, 350);
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/sendfile.css")).toExternalForm());
 
-        return scene; // Trả về scene đã tạo
+        return scene;
     }
 
     private Button createActionButton(String text, String iconPath, String color, EventHandler<ActionEvent> action) {

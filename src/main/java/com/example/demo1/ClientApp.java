@@ -52,7 +52,7 @@ public class ClientApp extends Application {
         try {
             Image logo = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/logo.png")));
             logoView.setImage(logo);
-            logoView.setFitHeight(60);
+            logoView.setFitHeight(80);
             logoView.setPreserveRatio(true);
         } catch (Exception e) {
             System.err.println("Could not load logo: " + e.getMessage());
@@ -66,7 +66,7 @@ public class ClientApp extends Application {
         logoContainer.setAlignment(Pos.CENTER);
         logoContainer.setPadding(new Insets(30.0, 0.0, 20.0, 0.0));
 
-        Label ipLabel = new Label("IP ⚡:");
+        Label ipLabel = new Label("IP:");
         ipLabel.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
 
         TextField ipField = new TextField("127.0.0.1");
@@ -139,21 +139,47 @@ public class ClientApp extends Application {
     }
 
     private Scene createMainScene(Stage stage) {
-        // Nút my files
+        // Create main layout
+        VBox mainLayout = new VBox(20);
+        mainLayout.setAlignment(Pos.TOP_CENTER);
+        mainLayout.setPadding(new Insets(20));
+        mainLayout.setStyle("-fx-background-color: #f5f7fa;");
+
+        // Header with logo and username
+        HBox header = new HBox(10);
+        header.setAlignment(Pos.CENTER);
+
+        // Load and display logo
+        ImageView logoView = new ImageView();
+        try {
+            Image logo = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/clientU.png")));
+            logoView.setImage(logo);
+            logoView.setFitHeight(50);
+            logoView.setPreserveRatio(true);
+        } catch (Exception e) {
+            System.err.println("Could not load logo: " + e.getMessage());
+        }
+
+        // Display username
+        Label usernameLabel = new Label("Client: "+currentUsername);
+        usernameLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+
+        header.getChildren().addAll(logoView, usernameLabel);
+
+        // Create buttons (keep your existing button code)
         ImageView fileIcon = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/myfile.png"))));
         fileIcon.setFitWidth(24.0);
         fileIcon.setFitHeight(24.0);
 
-        Button fileButton = new Button("My Files của "+currentUsername, fileIcon);
+        Button fileButton = new Button("My Files", fileIcon);
         fileButton.setMaxWidth(Double.MAX_VALUE);
         fileButton.getStyleClass().add("myfile-button");
         fileButton.setOnAction(event -> {
             if (currentUsername != null) {
                 File userDecryptDir = new File("./users/" + currentUsername + "/Decrypted");
                 if (!userDecryptDir.exists()) {
-                    boolean mkdirs = userDecryptDir.mkdirs();
+                    userDecryptDir.mkdirs();
                 }
-
                 try {
                     Desktop.getDesktop().open(userDecryptDir);
                 } catch (IOException e) {
@@ -164,7 +190,6 @@ public class ClientApp extends Application {
             }
         });
 
-        // Nút send file
         ImageView sendIcon = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/send.png"))));
         sendIcon.setFitWidth(24.0);
         sendIcon.setFitHeight(24.0);
@@ -211,16 +236,17 @@ public class ClientApp extends Application {
             stage.setScene(createLoginScene(stage));
         });
 
-        VBox buttonBox = new VBox(15.0, fileButton, sendButton, decryptButton, logoutButton);
+        // Button container
+        VBox buttonBox = new VBox(15, sendButton, decryptButton,fileButton, logoutButton);
         buttonBox.setAlignment(Pos.CENTER);
-        buttonBox.setPadding(new Insets(30.0));
-        buttonBox.setPrefWidth(300.0);
+        buttonBox.setPadding(new Insets(25));
+        buttonBox.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
+        buttonBox.setMaxWidth(350);
 
-        StackPane root = new StackPane(buttonBox);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(50.0));
+        // Add all components to main layout
+        mainLayout.getChildren().addAll(header, buttonBox);
 
-        Scene scene = new Scene(root, 400.0, 300.0);
+        Scene scene = new Scene(mainLayout, 470, 400);
         scene.getStylesheets().add(getClass().getResource("/style2.css").toExternalForm());
 
         return scene;
