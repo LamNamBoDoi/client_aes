@@ -215,28 +215,6 @@ public class SendFileScene {
         GridPane.setHgrow(control, Priority.ALWAYS);
     }
 
-//    private Button createActionButton(String text, String iconPath, String color, EventHandler<ActionEvent> action) {
-//        ImageView icon = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream(iconPath))));
-//        icon.setFitWidth(16);
-//        icon.setFitHeight(16);
-//
-//        Button button = new Button(text, icon);
-//        button.setContentDisplay(ContentDisplay.LEFT);
-//        button.setGraphicTextGap(10);
-//        button.setStyle("-fx-font-size: 14px; -fx-padding: 8 15 8 15; -fx-background-radius: 5;");
-//        button.setStyle("-fx-base: " + color + ";");
-//        button.setMinWidth(120);
-//
-//        // Hiệu ứng hover
-//        button.setOnMouseEntered(e -> button.setStyle("-fx-base: " + color + "; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0.5, 0, 1);"));
-//        button.setOnMouseExited(e -> button.setStyle("-fx-base: " + color + "; -fx-effect: null;"));
-//
-//        // Gán action khi nhấn
-//        button.setOnAction(action);
-//
-//        return button;
-//    }
-
     public void requestClientList() {
         new Thread(() -> {
             try (Socket socket = new Socket(serverIp, serverPort)) {//Tạo một Socket kết nối tới server:

@@ -186,42 +186,45 @@ public abstract class AES {
 
 
     protected int[][] keyExpansion(String key) {
-        // Set number of keys we need - 10 keys x 4 bytes + initial
+        // kích thước khóa
         int binkeysize = key.length() * 4;
 
+        // tổng kích thước khóa mở rộng
         int colsize = binkeysize + 48 - (32 * ((binkeysize / 64) - 2));
+        // số word
         int keySize = colsize/4;
         int nk = binkeysize/32;
-
-        // Init rcon pointer
         int rconIndex = 1;
-        // Init key variable
+
+        // mảng khóa mở rông
         int[][] expandedKey = new int[4][keySize];
-        // First parse key into 4x4 matrix
+        // Bước 1: Điền khóa gốc vào các cột đầu tiên
         for (int i = 0; i < nk; i++) {
             for (int j = 0; j < 4; j++) {
+                // chuyển hex về số nguyên
                 expandedKey[j][i] = Integer.parseInt(key.substring((8 * i) + (2 * j), (8 * i) + (2 * j + 2)), 16);
             }
         }
 
-        // Set start point - given we have already filled the first key
+        // Bắt đầu mở rộng từ vị trí sau khóa gốc
         int current = nk;
-        // Set some temp variables
         int[] a = new int[4];
         int b;
+        // Bước 2: Mở rộng khóa
         while (current < keySize) {
+            // Trường hợp 1: Cần áp dụng hàm schedule_core (mỗi nk từ)
             if (current % nk == 0) {
-                // We need to go through the g function
-                // First copy last word
+                // Sao chép word cuối cùng vào mảng tạm
                 for (b = 0; b < 4; b++) {
                     a[b] = expandedKey[b][current - 1];
                 }
-                // Go through g
+                // Áp dụng hàm schedule_core (RotWord + SubWord + Rcon)
                 a = schedule_core(a, rconIndex++);
-                // XOR with [i-4] word
+                // XOR với từ [current-nk]
                 for (b = 0; b < 4; b++) {
                     expandedKey[b][current] = a[b] ^ expandedKey[b][current - nk];
                 }
+                // Trường hợp 2: Xử lý đặc biệt cho AES-256 (nk=8)
             } else if(current % nk ==4 && nk==8){
                 for (b = 0; b < 4; b++) {
                     int hex = expandedKey[b][current - 1];
@@ -229,7 +232,7 @@ public abstract class AES {
                 }
             }
             else {
-                // Simply XOR with [i-4]
+                // Trường hợp 3: XOR đơn giản với từ [current-nk]
                 for (b = 0; b < 4; b++) {
                     expandedKey[b][current] = expandedKey[b][current - 1] ^ expandedKey[b][current - nk];
                 }
